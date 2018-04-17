@@ -124,6 +124,7 @@ func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 
 func listSigs(ctx context.Context, req *proto.ExecRequest) string {
 	var buffer bytes.Buffer
+	var roleList = make(map[string]string)
 	roleClient := clientFactory.NewRoleClient()
 	roles, err := roleClient.GetRoles(ctx, &rolesrv.NilMessage{})
 
@@ -131,17 +132,19 @@ func listSigs(ctx context.Context, req *proto.ExecRequest) string {
 		return sendFatal(err.Error())
 	}
 
-	if len(roles.Roles) == 0 {
-		return sendError("No Roles\n")
+	for role := range roles.Roles {
+		if roles.Roles[role].Sig {
+			roleList[roles.Roles[role].ShortName] = roles.Roles[role].Name
+		}
 	}
 
-	buffer.WriteString("Roles:\n")
-	for role := range roles.Roles {
-		fmt.Printf("%+v\n", roles.Roles[role])
-		buffer.WriteString(fmt.Sprintf("\t%s: %s\n",
-			roles.Roles[role].ShortName,
-			roles.Roles[role].Name,
-		))
+	if len(roleList) == 0 {
+		return sendError("No SIGs\n")
+	}
+
+	buffer.WriteString("SIGs:\n")
+	for role := range roleList {
+		buffer.WriteString(fmt.Sprintf("\t%s: %s\n", role, roleList[role]))
 	}
 
 	return fmt.Sprintf("```%s```", buffer.String())
@@ -163,6 +166,7 @@ func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 
 	roleClient := clientFactory.NewRoleClient()
 
+	// Need to check if it's a sig or not
 	_, err = roleClient.RemoveRole(ctx, &rolesrv.Role{ShortName: req.Args[2]})
 	if err != nil {
 		return sendFatal(err.Error())
@@ -192,7 +196,7 @@ func SigInfo(ctx context.Context, req *proto.ExecRequest) string {
 		return sendFatal(err.Error())
 	}
 
-	return fmt.Sprintf("```ShortName: %s\nType: %s\nFilterA: %s\nFilterB: %s\nName: %s\nColor: %d\nHoist: %t\nPosition: %d\nPermissions: %d\nManaged: %t\nMentionable: %t\n```",
+	return fmt.Sprintf("```ShortName: %s\nType: %s\nFilterA: %s\nFilterB: %s\nName: %s\nColor: %d\nHoist: %t\nPosition: %d\nPermissions: %d\nManaged: %t\nMentionable: %t\nJoinable: %t\n```",
 		info.ShortName,
 		info.Type,
 		info.FilterA,
@@ -204,6 +208,7 @@ func SigInfo(ctx context.Context, req *proto.ExecRequest) string {
 		info.Permissions,
 		info.Managed,
 		info.Mentionable,
+		info.Joinable,
 	)
 }
 
