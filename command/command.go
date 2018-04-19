@@ -6,10 +6,10 @@ import (
 	proto "github.com/chremoas/chremoas/proto"
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rolesrv "github.com/chremoas/role-srv/proto"
-	"strings"
 	common "github.com/chremoas/services-common/command"
+	crole "github.com/chremoas/services-common/roles"
 	"golang.org/x/net/context"
-	role "github.com/chremoas/services-common/roles"
+	"strings"
 )
 
 type ClientFactory interface {
@@ -32,7 +32,7 @@ var commandList = map[string]command{
 }
 
 var clientFactory ClientFactory
-var permissions common.Permissions
+var role crole.Roles
 
 type Command struct {
 	//Store anything you need the Help or Exec functions to have access to here
@@ -84,49 +84,19 @@ func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("Usage: !sig add <name> <role_type> <filterA> <filterB> <sig_description>")
 	}
 
-	roleShortName := req.Args[2]
-	roleType := req.Args[3]
-	filterA := req.Args[4]
-	filterB := req.Args[5]
-	roleName := strings.Join(req.Args[6:], " ")
-
-	if len(roleName) > 0 && roleName[0] == '"' {
-		roleName = roleName[1:]
-	}
-
-	if len(roleName) > 0 && roleName[len(roleName)-1] == '"' {
-		roleName = roleName[:len(roleName)-1]
-	}
-
-	canPerform, err := permissions.CanPerform(ctx, req.Sender, []string{"sig_admins"})
-	if err != nil {
-		return common.SendFatal(err.Error())
-	}
-
-	if !canPerform {
-		return common.SendError("User doesn't have permission to this command")
-	}
-
-	roleClient := clientFactory.NewRoleClient()
-	_, err = roleClient.AddRole(ctx,
-		&rolesrv.Role{
-			Sig:       true,
-			ShortName: roleShortName,
-			Type:      roleType,
-			Name:      roleName,
-			FilterA:   filterA,
-			FilterB:   filterB,
-		})
-
-	if err != nil {
-		return common.SendFatal(err.Error())
-	}
-
-	return common.SendSuccess(fmt.Sprintf("Added: %s\n", roleShortName))
+	return role.AddRole(ctx,
+		req.Sender,
+		req.Args[2], // shortName
+		req.Args[3], // roleType
+		req.Args[4], // filterA
+		req.Args[5], // filterB
+		strings.Join(req.Args[6:], " "), // roleName
+		true, // Is this a SIG?
+	)
 }
 
 func listSigs(ctx context.Context, req *proto.ExecRequest) string {
-	return role.ListRoles(ctx, clientFactory.NewRoleClient(), true)
+	return role.ListRoles(ctx, true)
 }
 
 func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
@@ -134,7 +104,7 @@ func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("Usage: !sig remove <role_name>")
 	}
 
-	canPerform, err := permissions.CanPerform(ctx, req.Sender, []string{"sig_admins"})
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender, []string{"sig_admins"})
 	if err != nil {
 		return common.SendFatal(err.Error())
 	}
@@ -159,7 +129,7 @@ func SigInfo(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("Usage: !sig info <role_name>")
 	}
 
-	canPerform, err := permissions.CanPerform(ctx, req.Sender, []string{"sig_admins"})
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender, []string{"sig_admins"})
 	if err != nil {
 		return common.SendFatal(err.Error())
 	}
@@ -197,7 +167,11 @@ func notDefined(ctx context.Context, req *proto.ExecRequest) string {
 
 func NewCommand(name string, factory ClientFactory) *Command {
 	clientFactory = factory
-	permissions = common.Permissions{Client: clientFactory.NewPermsClient()}
+	role = crole.Roles{
+		RoleClient:  clientFactory.NewRoleClient(),
+		PermsClient: clientFactory.NewPermsClient(),
+		Permissions: common.Permissions{Client: clientFactory.NewPermsClient()},
+	}
 	newCommand := Command{name: name, factory: factory}
 	return &newCommand
 }
