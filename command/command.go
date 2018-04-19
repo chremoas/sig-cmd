@@ -126,8 +126,7 @@ func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 }
 
 func listSigs(ctx context.Context, req *proto.ExecRequest) string {
-	roleClient := clientFactory.NewRoleClient()
-	return role.ListRoles(ctx, roleClient, true)
+	return role.ListRoles(ctx, clientFactory.NewRoleClient(), true)
 }
 
 func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
