@@ -1,13 +1,13 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	proto "github.com/chremoas/chremoas/proto"
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rolesrv "github.com/chremoas/role-srv/proto"
 	common "github.com/chremoas/services-common/command"
 	crole "github.com/chremoas/services-common/roles"
+	"github.com/chremoas/services-common/args"
 	"golang.org/x/net/context"
 	"strings"
 )
@@ -23,13 +23,13 @@ type command struct {
 }
 
 var cmdName = "sig"
-var commandList = map[string]command{
-	"list":       {listSigs, "List all SIGs"},
-	"add":        {addSigs, "Add SIG"},
-	"remove":     {removeSigs, "Delete SIG"},
-	"info":       {SigInfo, "Get SIG Info"},
-	"notDefined": {notDefined, ""},
-}
+//var commandList = map[string]command{
+//	"list":       {listSigs, "List all SIGs"},
+//	"add":        {addSigs, "Add SIG"},
+//	"remove":     {removeSigs, "Delete SIG"},
+//	"info":       {SigInfo, "Get SIG Info"},
+//	"notDefined": {notDefined, ""},
+//}
 
 var clientFactory ClientFactory
 var role crole.Roles
@@ -47,36 +47,13 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 }
 
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
-	var response string
-
-	if req.Args[1] == "help" {
-		response = help()
-	} else {
-		f, ok := commandList[req.Args[1]]
-		if ok {
-			response = f.funcptr(ctx, req)
-		} else {
-			response = common.SendError(fmt.Sprintf("Not a valid subcommand: %s", req.Args[1]))
-		}
-	}
-
-	rsp.Result = []byte(response)
-	return nil
-}
-
-func help() string {
-	var buffer bytes.Buffer
-
-	buffer.WriteString(fmt.Sprintf("Usage: !%s <subcommand> <arguments>\n", cmdName))
-	buffer.WriteString("\nSubcommands:\n")
-
-	for cmd := range commandList {
-		if commandList[cmd].help != "" {
-			buffer.WriteString(fmt.Sprintf("\t%s: %s\n", cmd, commandList[cmd].help))
-		}
-	}
-
-	return fmt.Sprintf("```%s```", buffer.String())
+	cmd := args.NewArg(cmdName)
+	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
+	cmd.Add("info", &args.Command{SigInfo, "Get SIG info"})
+	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
+	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
+	cmd.Add("notDefined", &args.Command{notDefined, ""})
+	return cmd.Exec(ctx, req, rsp)
 }
 
 func addSigs(ctx context.Context, req *proto.ExecRequest) string {
@@ -86,10 +63,10 @@ func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 
 	return role.AddRole(ctx,
 		req.Sender,
-		req.Args[2], // shortName
-		req.Args[3], // roleType
-		req.Args[4], // filterA
-		req.Args[5], // filterB
+		req.Args[2],                     // shortName
+		req.Args[3],                     // roleType
+		req.Args[4],                     // filterA
+		req.Args[5],                     // filterB
 		strings.Join(req.Args[6:], " "), // roleName
 		true, // Is this a SIG?
 	)
