@@ -35,7 +35,7 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
 	cmd := args.NewArg(cmdName)
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
-	cmd.Add("info", &args.Command{SigInfo, "Get SIG info"})
+	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
 	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
 	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
 	err := cmd.Exec(ctx, req, rsp)
@@ -75,7 +75,7 @@ func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 	return role.RemoveRole(ctx, req.Sender, req.Args[2], true)
 }
 
-func SigInfo(ctx context.Context, req *proto.ExecRequest) string {
+func sigInfo(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
 		return common.SendError("Usage: !sig info <role_name>")
 	}
