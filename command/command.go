@@ -53,7 +53,13 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
 	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
 	cmd.Add("notDefined", &args.Command{notDefined, ""})
-	return cmd.Exec(ctx, req, rsp)
+	err := cmd.Exec(ctx, req, rsp)
+
+	// I don't 100% love this, but it'll do for now. -brian
+	if err != nil {
+		rsp.Result = []byte(common.SendError(err.Error()))
+	}
+	return nil
 }
 
 func addSigs(ctx context.Context, req *proto.ExecRequest) string {
