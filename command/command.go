@@ -6,7 +6,7 @@ import (
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rolesrv "github.com/chremoas/role-srv/proto"
 	common "github.com/chremoas/services-common/command"
-	crole "github.com/chremoas/services-common/roles"
+	rclient "github.com/chremoas/role-srv/client"
 	"github.com/chremoas/services-common/args"
 	"golang.org/x/net/context"
 	"strings"
@@ -32,7 +32,7 @@ var cmdName = "sig"
 //}
 
 var clientFactory ClientFactory
-var role crole.Roles
+var role rclient.Roles
 
 type Command struct {
 	//Store anything you need the Help or Exec functions to have access to here
@@ -150,7 +150,7 @@ func notDefined(ctx context.Context, req *proto.ExecRequest) string {
 
 func NewCommand(name string, factory ClientFactory) *Command {
 	clientFactory = factory
-	role = crole.Roles{
+	role = rclient.Roles{
 		RoleClient:  clientFactory.NewRoleClient(),
 		PermsClient: clientFactory.NewPermsClient(),
 		Permissions: common.Permissions{Client: clientFactory.NewPermsClient()},
