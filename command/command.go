@@ -40,9 +40,11 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
 	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
+	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
+	// TODO: Add a command for the user to get a list of what SIGs they are members of.
 	err := cmd.Exec(ctx, req, rsp)
 
-	// I don't 100% love this, but it'll do for now. -brian
+	//I don't 100% love this, but it'll do for now. -brian
 	if err != nil {
 		rsp.Result = []byte(common.SendError(err.Error()))
 	}
@@ -114,6 +116,14 @@ func joinSig(ctx context.Context, req *proto.ExecRequest) string {
 	}
 
 	return role.JoinSIG(ctx, req.Sender, req.Args[2])
+}
+
+func leaveSig(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 3 {
+		return common.SendError("Usage: !sig leave <special_interest_group>")
+	}
+
+	return role.LeaveSIG(ctx, req.Sender, req.Args[2])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
