@@ -1,12 +1,13 @@
 package command
 
 import (
+	"fmt"
 	proto "github.com/chremoas/chremoas/proto"
 	permsrv "github.com/chremoas/perms-srv/proto"
-	rolesrv "github.com/chremoas/role-srv/proto"
-	common "github.com/chremoas/services-common/command"
 	rclient "github.com/chremoas/role-srv/client"
+	rolesrv "github.com/chremoas/role-srv/proto"
 	"github.com/chremoas/services-common/args"
+	common "github.com/chremoas/services-common/command"
 	"golang.org/x/net/context"
 	"strings"
 )
@@ -38,6 +39,7 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
 	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
 	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
+	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	err := cmd.Exec(ctx, req, rsp)
 
 	// I don't 100% love this, but it'll do for now. -brian
@@ -48,39 +50,70 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 }
 
 func addSigs(ctx context.Context, req *proto.ExecRequest) string {
-	if len(req.Args) < 7 {
-		return common.SendError("Usage: !sig add <name> <role_type> <filterA> <filterB> <sig_description>")
+	var joinable = false
+	if len(req.Args) < 6 {
+		return common.SendError("Usage: !sig add <name> <filter> joinable <sig_description>")
 	}
 
+	name := req.Args[2]
+	filter := fmt.Sprintf("sig_%s", name)
+
+	role.AddFilter(ctx, req.Sender, filter, fmt.Sprintf("Auto-generated filter for %s", name))
+
+	if req.Args[4] == "joinable" {
+		joinable = true
+	}
 	return role.AddRole(ctx,
 		req.Sender,
-		req.Args[2],                     // shortName
-		req.Args[3],                     // roleType
-		req.Args[4],                     // filterA
-		req.Args[5],                     // filterB
-		strings.Join(req.Args[6:], " "), // roleName
+		name,                            // shortName
+		"discord",                       // roleType
+		req.Args[3],                     // filterA
+		filter,                          // filterB
+		joinable,                        // Is this SIG joinable?
+		strings.Join(req.Args[5:], " "), // roleName
 		true, // Is this a SIG?
 	)
 }
 
 func listSigs(ctx context.Context, req *proto.ExecRequest) string {
-	return role.ListRoles(ctx, true)
+	var all = false
+	if len(req.Args) == 3 {
+		if req.Args[2] == "all" {
+			all = true
+		}
+	}
+
+	return role.ListRoles(ctx, all, true)
 }
 
 func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
-		return common.SendError("Usage: !sig remove <role_name>")
+		return common.SendError("Usage: !sig remove <special_interest_group>")
 	}
+
+	name := req.Args[2]
+	filter := fmt.Sprintf("sig_%s", name)
+
+	role.RemoveAllMembers(ctx, filter)
+	role.RemoveFilter(ctx, req.Sender, filter)
 
 	return role.RemoveRole(ctx, req.Sender, req.Args[2], true)
 }
 
 func sigInfo(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
-		return common.SendError("Usage: !sig info <role_name>")
+		return common.SendError("Usage: !sig info <special_interest_group>")
 	}
 
 	return role.RoleInfo(ctx, req.Sender, req.Args[2], true)
+}
+
+func joinSig(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 3 {
+		return common.SendError("Usage: !sig join <special_interest_group>")
+	}
+
+	return role.JoinSIG(ctx, req.Sender, req.Args[2])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
