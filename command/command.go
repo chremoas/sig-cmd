@@ -54,7 +54,7 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 	var joinable = false
 	if len(req.Args) < 6 {
-		return common.SendError("Usage: !sig add <name> <filter> joinable <sig_description>")
+		return common.SendError("Usage: !sig create <name> <filter> joinable <sig_description>")
 	}
 
 	name := req.Args[2]
@@ -90,7 +90,7 @@ func listSigs(ctx context.Context, req *proto.ExecRequest) string {
 
 func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
-		return common.SendError("Usage: !sig remove <special_interest_group>")
+		return common.SendError("Usage: !sig destroy <special_interest_group>")
 	}
 
 	name := req.Args[2]
