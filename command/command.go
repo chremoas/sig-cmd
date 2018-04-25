@@ -36,9 +36,9 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
 	cmd := args.NewArg(cmdName)
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
+	cmd.Add("create", &args.Command{addSigs, "Add SIGs"})
+	cmd.Add("destroy", &args.Command{removeSigs, "Delete SIGs"})
 	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
-	cmd.Add("add", &args.Command{addSigs, "Add SIGs"})
-	cmd.Add("remove", &args.Command{removeSigs, "Delete SIGs"})
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
 	// TODO: Add a command for the user to get a list of what SIGs they are members of.
