@@ -13,8 +13,8 @@ import (
 )
 
 type ClientFactory interface {
-	NewPermsClient() permsrv.PermissionsClient
-	NewRoleClient() rolesrv.RolesClient
+	NewPermsClient() permsrv.PermissionsService
+	NewRoleClient() rolesrv.RolesService
 }
 
 var cmdName = "sig"
