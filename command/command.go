@@ -96,7 +96,7 @@ func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
 	name := req.Args[2]
 	filter := fmt.Sprintf("sig_%s", name)
 
-	role.RemoveAllMembers(ctx, filter)
+	role.RemoveAllMembers(ctx, filter, req.Sender)
 	role.RemoveFilter(ctx, req.Sender, filter)
 
 	return role.RemoveRole(ctx, req.Sender, req.Args[2], true)
