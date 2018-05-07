@@ -38,8 +38,8 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
 	cmd.Add("create", &args.Command{createSigs, "Add SIGs"})
 	cmd.Add("destroy", &args.Command{destroySigs, "Delete SIGs"})
-	cmd.Add("add", &args.Command{addSig, "Delete SIGs"})
-	cmd.Add("remove", &args.Command{removeSig, "Delete SIGs"})
+	cmd.Add("add", &args.Command{addSig, "Add user to SIG"})
+	cmd.Add("remove", &args.Command{removeSig, "Remove user from SIG"})
 	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
@@ -56,7 +56,7 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 func createSigs(ctx context.Context, req *proto.ExecRequest) string {
 	var joinable = false
 	if len(req.Args) < 6 {
-		return common.SendError("Usage: !sig create <name> <filter> joinable <sig_description>")
+		return common.SendError("Usage: !sig create <name> <filter> <joinable> <sig_description>")
 	}
 
 	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
@@ -73,7 +73,7 @@ func createSigs(ctx context.Context, req *proto.ExecRequest) string {
 
 	role.AddFilter(ctx, req.Sender, filter, fmt.Sprintf("Auto-generated filter for %s", name))
 
-	if req.Args[4] == "joinable" {
+	if req.Args[4] == "yes" || req.Args[4] == "true" {
 		joinable = true
 	}
 
