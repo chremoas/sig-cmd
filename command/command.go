@@ -144,6 +144,15 @@ func addSig(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("Usage: !sig add <user> <special_interest_group>")
 	}
 
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
+	if err != nil {
+		return common.SendFatal(err.Error())
+	}
+
+	if !canPerform {
+		return common.SendError("User doesn't have permission to this command")
+	}
+
 	if !common.IsDiscordUser(req.Args[2]) {
 		return common.SendError("Second argument must be a discord user")
 	}
@@ -151,7 +160,7 @@ func addSig(ctx context.Context, req *proto.ExecRequest) string {
 	userId := common.ExtractUserId(req.Args[2])
 	channelId := strings.Split(req.Sender, ":")[0]
 
-	return role.JoinSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
+	return role.AddSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
 }
 
 func leaveSig(ctx context.Context, req *proto.ExecRequest) string {
@@ -167,6 +176,15 @@ func removeSig(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("Usage: !sig remove <user> <special_interest_group>")
 	}
 
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
+	if err != nil {
+		return common.SendFatal(err.Error())
+	}
+
+	if !canPerform {
+		return common.SendError("User doesn't have permission to this command")
+	}
+
 	if !common.IsDiscordUser(req.Args[2]) {
 		return common.SendError("Second argument must be a discord user")
 	}
@@ -174,7 +192,7 @@ func removeSig(ctx context.Context, req *proto.ExecRequest) string {
 	userId := common.ExtractUserId(req.Args[2])
 	channelId := strings.Split(req.Sender, ":")[0]
 
-	return role.LeaveSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
+	return role.RemoveSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
