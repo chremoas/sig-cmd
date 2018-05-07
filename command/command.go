@@ -36,8 +36,10 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
 	cmd := args.NewArg(cmdName)
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
-	cmd.Add("create", &args.Command{addSigs, "Add SIGs"})
-	cmd.Add("destroy", &args.Command{removeSigs, "Delete SIGs"})
+	cmd.Add("create", &args.Command{createSigs, "Add SIGs"})
+	cmd.Add("destroy", &args.Command{destroySigs, "Delete SIGs"})
+	cmd.Add("add", &args.Command{addSig, "Delete SIGs"})
+	cmd.Add("remove", &args.Command{removeSig, "Delete SIGs"})
 	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
@@ -51,10 +53,19 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	return nil
 }
 
-func addSigs(ctx context.Context, req *proto.ExecRequest) string {
+func createSigs(ctx context.Context, req *proto.ExecRequest) string {
 	var joinable = false
 	if len(req.Args) < 6 {
 		return common.SendError("Usage: !sig create <name> <filter> joinable <sig_description>")
+	}
+
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
+	if err != nil {
+		return common.SendFatal(err.Error())
+	}
+
+	if !canPerform {
+		return common.SendError("User doesn't have permission to this command")
 	}
 
 	name := req.Args[2]
@@ -65,6 +76,7 @@ func addSigs(ctx context.Context, req *proto.ExecRequest) string {
 	if req.Args[4] == "joinable" {
 		joinable = true
 	}
+
 	return role.AddRole(ctx,
 		req.Sender,
 		name,                            // shortName
@@ -88,9 +100,18 @@ func listSigs(ctx context.Context, req *proto.ExecRequest) string {
 	return role.ListRoles(ctx, all, true)
 }
 
-func removeSigs(ctx context.Context, req *proto.ExecRequest) string {
+func destroySigs(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
 		return common.SendError("Usage: !sig destroy <special_interest_group>")
+	}
+
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
+	if err != nil {
+		return common.SendFatal(err.Error())
+	}
+
+	if !canPerform {
+		return common.SendError("User doesn't have permission to this command")
 	}
 
 	name := req.Args[2]
@@ -118,12 +139,42 @@ func joinSig(ctx context.Context, req *proto.ExecRequest) string {
 	return role.JoinSIG(ctx, req.Sender, req.Args[2])
 }
 
+func addSig(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 4 {
+		return common.SendError("Usage: !sig add <user> <special_interest_group>")
+	}
+
+	if !common.IsDiscordUser(req.Args[2]) {
+		return common.SendError("Second argument must be a discord user")
+	}
+
+	userId := common.ExtractUserId(req.Args[2])
+	channelId := strings.Split(req.Sender, ":")[0]
+
+	return role.JoinSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
+}
+
 func leaveSig(ctx context.Context, req *proto.ExecRequest) string {
 	if len(req.Args) != 3 {
 		return common.SendError("Usage: !sig leave <special_interest_group>")
 	}
 
 	return role.LeaveSIG(ctx, req.Sender, req.Args[2])
+}
+
+func removeSig(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 4 {
+		return common.SendError("Usage: !sig remove <user> <special_interest_group>")
+	}
+
+	if !common.IsDiscordUser(req.Args[2]) {
+		return common.SendError("Second argument must be a discord user")
+	}
+
+	userId := common.ExtractUserId(req.Args[2])
+	channelId := strings.Split(req.Sender, ":")[0]
+
+	return role.LeaveSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
