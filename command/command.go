@@ -43,6 +43,7 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("info", &args.Command{sigInfo, "Get SIG info"})
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
+	cmd.Add("set", &args.Command{setSig, "Set sig key"})
 	// TODO: Add a command for the user to get a list of what SIGs they are members of.
 	err := cmd.Exec(ctx, req, rsp)
 
@@ -193,6 +194,23 @@ func removeSig(ctx context.Context, req *proto.ExecRequest) string {
 	channelId := strings.Split(req.Sender, ":")[0]
 
 	return role.RemoveSIG(ctx, fmt.Sprintf("%s:%s", channelId, userId), req.Args[3])
+}
+
+func setSig(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 5 {
+		return common.SendError("Usage: !sig set <sig_name> <key> <value>")
+	}
+
+	canPerform, err := role.Permissions.CanPerform(ctx, req.Sender)
+	if err != nil {
+		return common.SendFatal(err.Error())
+	}
+
+	if !canPerform {
+		return common.SendError("User doesn't have permission to this command")
+	}
+
+	return role.Set(ctx, req.Sender, req.Args[2], req.Args[3], req.Args[4])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
