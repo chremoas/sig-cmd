@@ -44,6 +44,7 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("join", &args.Command{joinSig, "Join SIG"})
 	cmd.Add("leave", &args.Command{leaveSig, "Leave SIG"})
 	cmd.Add("set", &args.Command{setSig, "Set sig key"})
+	cmd.Add("list_members", &args.Command{getMembers, "List SIG members"})
 	// TODO: Add a command for the user to get a list of what SIGs they are members of.
 	err := cmd.Exec(ctx, req, rsp)
 
@@ -211,6 +212,14 @@ func setSig(ctx context.Context, req *proto.ExecRequest) string {
 	}
 
 	return role.Set(ctx, req.Sender, req.Args[2], req.Args[3], req.Args[4])
+}
+
+func getMembers(ctx context.Context, req *proto.ExecRequest) string {
+	if len(req.Args) != 3 {
+		return common.SendError("Usage: !sig list_members <sig_name>")
+	}
+
+	return role.GetMembers(ctx, req.Args[2])
 }
 
 func NewCommand(name string, factory ClientFactory) *Command {
