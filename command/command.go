@@ -187,6 +187,7 @@ func removeSig(ctx context.Context, req *proto.ExecRequest) string {
 		return common.SendError("User doesn't have permission to this command")
 	}
 
+	fmt.Printf("Checking is DiscordUser: %s\n", req.Args[2])
 	if !common.IsDiscordUser(req.Args[2]) {
 		return common.SendError("Second argument must be a discord user")
 	}
