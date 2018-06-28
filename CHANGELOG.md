@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.3] - 2018-06-28
+### Changed
+- Working on Travis Pipeline
+
+## [1.1.2] - Skipped
+
 ## [1.1.1] - 2018-06-11
 ### Changed
 - Tagged and rebuilt to pickup changes in role-srv/client
