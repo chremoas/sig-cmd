@@ -100,7 +100,8 @@ func listSigs(ctx context.Context, req *proto.ExecRequest) string {
 		}
 	}
 
-	return role.ListRoles(ctx, all, true)
+	sender := strings.Split(req.Sender, ":")
+	return role.ListRoles(ctx, sender[0], all, true)
 }
 
 func destroySigs(ctx context.Context, req *proto.ExecRequest) string {
