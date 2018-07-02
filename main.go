@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	proto "github.com/chremoas/chremoas/proto"
-	"github.com/chremoas/sig-cmd/command"
-	rolesrv "github.com/chremoas/role-srv/proto"
+	discordsrv "github.com/chremoas/discord-gateway/proto"
 	permsrv "github.com/chremoas/perms-srv/proto"
+	rolesrv "github.com/chremoas/role-srv/proto"
 	"github.com/chremoas/services-common/config"
+	"github.com/chremoas/sig-cmd/command"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/client"
 )
@@ -26,9 +27,10 @@ func main() {
 // This function is a callback from the config.NewService function.  Read those docs
 func initialize(config *config.Configuration) error {
 	clientFactory := clientFactory{
-		roleSrv:  config.LookupService("srv", "role"),
-		permsSrv: config.LookupService("srv", "perms"),
-		client:   service.Client()}
+		roleSrv:        config.LookupService("srv", "role"),
+		permsSrv:       config.LookupService("srv", "perms"),
+		discordGateway: config.LookupService("gateway", "discord"),
+		client:         service.Client()}
 
 	proto.RegisterCommandHandler(service.Server(),
 		command.NewCommand(name,
@@ -40,9 +42,10 @@ func initialize(config *config.Configuration) error {
 }
 
 type clientFactory struct {
-	roleSrv  string
-	permsSrv string
-	client   client.Client
+	roleSrv        string
+	permsSrv       string
+	discordGateway string
+	client         client.Client
 }
 
 func (c clientFactory) NewPermsClient() permsrv.PermissionsService {
@@ -51,4 +54,8 @@ func (c clientFactory) NewPermsClient() permsrv.PermissionsService {
 
 func (c clientFactory) NewRoleClient() rolesrv.RolesService {
 	return rolesrv.NewRolesService(c.roleSrv, c.client)
+}
+
+func (c clientFactory) NewDiscordClient() discordsrv.DiscordGatewayService {
+	return discordsrv.NewDiscordGatewayService(c.discordGateway, c.client)
 }

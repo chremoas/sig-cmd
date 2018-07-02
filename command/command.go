@@ -6,6 +6,7 @@ import (
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rclient "github.com/chremoas/role-srv/client"
 	rolesrv "github.com/chremoas/role-srv/proto"
+	discordsrv "github.com/chremoas/discord-gateway/proto"
 	"github.com/chremoas/services-common/args"
 	common "github.com/chremoas/services-common/command"
 	"golang.org/x/net/context"
@@ -15,6 +16,7 @@ import (
 type ClientFactory interface {
 	NewPermsClient() permsrv.PermissionsService
 	NewRoleClient() rolesrv.RolesService
+	NewDiscordClient() discordsrv.DiscordGatewayService
 }
 
 var cmdName = "sig"
@@ -235,6 +237,7 @@ func NewCommand(name string, factory ClientFactory) *Command {
 	role = rclient.Roles{
 		RoleClient:  clientFactory.NewRoleClient(),
 		PermsClient: clientFactory.NewPermsClient(),
+		DiscordClient: clientFactory.NewDiscordClient(),
 		Permissions: common.NewPermission(clientFactory.NewPermsClient(), []string{"sig_admins"}),
 	}
 
