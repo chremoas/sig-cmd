@@ -23,9 +23,9 @@ var (
 	serviceName    string
 	serviceType    string
 	serviceVersion string
+	clientFactory  ClientFactory
+	role           rclient.Roles
 )
-var clientFactory ClientFactory
-var role rclient.Roles
 
 type Command struct {
 	//Store anything you need the Help or Exec functions to have access to here
@@ -40,7 +40,7 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 }
 
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
-	cmd := args.NewArg(serviceName, serviceType, serviceVersion, &role.DiscordClient)
+	cmd := args.NewArg(serviceName, serviceType, serviceVersion, role.DiscordClient)
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
 	cmd.Add("create", &args.Command{createSigs, "Add SIGs"})
 	cmd.Add("destroy", &args.Command{destroySigs, "Delete SIGs"})
@@ -53,12 +53,17 @@ func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.E
 	cmd.Add("list_members", &args.Command{getMembers, "List SIG members"})
 	cmd.Add("list_sigs", &args.Command{listUserSigs, "List user SIGs"})
 	// TODO: Add a command for the user to get a list of what SIGs they are members of.
-	err := cmd.Exec(ctx, req, rsp)
+	embed, err := cmd.Exec(ctx, req, rsp)
 
 	//I don't 100% love this, but it'll do for now. -brian
 	if err != nil {
 		rsp.Result = []byte(common.SendError(err.Error()))
 	}
+
+	if embed != nil {
+		role.SendEmbed(ctx, embed)
+	}
+
 	return nil
 }
 
@@ -237,10 +242,10 @@ func listUserSigs(ctx context.Context, request *proto.ExecRequest) string {
 }
 
 func NewCommand(name, sType, version string, factory ClientFactory) *Command {
-	clientFactory = factory
 	serviceName = name
 	serviceType = sType
-	serviceName = version
+	serviceVersion = version
+	clientFactory = factory
 	role = rclient.Roles{
 		RoleClient:    clientFactory.NewRoleClient(),
 		PermsClient:   clientFactory.NewPermsClient(),
