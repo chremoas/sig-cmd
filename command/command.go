@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 	proto "github.com/chremoas/chremoas/proto"
+	discordsrv "github.com/chremoas/discord-gateway/proto"
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rclient "github.com/chremoas/role-srv/client"
 	rolesrv "github.com/chremoas/role-srv/proto"
-	discordsrv "github.com/chremoas/discord-gateway/proto"
 	"github.com/chremoas/services-common/args"
 	common "github.com/chremoas/services-common/command"
 	"golang.org/x/net/context"
@@ -19,7 +19,11 @@ type ClientFactory interface {
 	NewDiscordClient() discordsrv.DiscordGatewayService
 }
 
-var cmdName = "sig"
+var (
+	serviceName    string
+	serviceType    string
+	serviceVersion string
+)
 var clientFactory ClientFactory
 var role rclient.Roles
 
@@ -36,7 +40,7 @@ func (c *Command) Help(ctx context.Context, req *proto.HelpRequest, rsp *proto.H
 }
 
 func (c *Command) Exec(ctx context.Context, req *proto.ExecRequest, rsp *proto.ExecResponse) error {
-	cmd := args.NewArg(cmdName)
+	cmd := args.NewArg(serviceName, serviceType, serviceVersion, &role.DiscordClient)
 	cmd.Add("list", &args.Command{listSigs, "List all SIGs"})
 	cmd.Add("create", &args.Command{createSigs, "Add SIGs"})
 	cmd.Add("destroy", &args.Command{destroySigs, "Delete SIGs"})
@@ -232,13 +236,16 @@ func listUserSigs(ctx context.Context, request *proto.ExecRequest) string {
 	return role.ListUserRoles(ctx, s[1], true)
 }
 
-func NewCommand(name string, factory ClientFactory) *Command {
+func NewCommand(name, sType, version string, factory ClientFactory) *Command {
 	clientFactory = factory
+	serviceName = name
+	serviceType = sType
+	serviceName = version
 	role = rclient.Roles{
-		RoleClient:  clientFactory.NewRoleClient(),
-		PermsClient: clientFactory.NewPermsClient(),
+		RoleClient:    clientFactory.NewRoleClient(),
+		PermsClient:   clientFactory.NewPermsClient(),
 		DiscordClient: clientFactory.NewDiscordClient(),
-		Permissions: common.NewPermission(clientFactory.NewPermsClient(), []string{"sig_admins"}),
+		Permissions:   common.NewPermission(clientFactory.NewPermsClient(), []string{"sig_admins"}),
 	}
 
 	return &Command{name: name, factory: factory}

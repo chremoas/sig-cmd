@@ -14,10 +14,11 @@ import (
 
 var Version = "SET ME YOU KNOB"
 var service micro.Service
-var name = "sig"
+var serviceName = "sig"
+var serviceType = "cmd"
 
 func main() {
-	service = config.NewService(Version, "cmd", name, initialize)
+	service = config.NewService(Version, serviceType, serviceName, initialize)
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err)
@@ -33,7 +34,10 @@ func initialize(config *config.Configuration) error {
 		client:         service.Client()}
 
 	proto.RegisterCommandHandler(service.Server(),
-		command.NewCommand(name,
+		command.NewCommand(
+			serviceName,
+			serviceType,
+			Version,
 			&clientFactory,
 		),
 	)
