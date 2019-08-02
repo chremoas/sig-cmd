@@ -3,10 +3,11 @@ package command
 import (
 	"fmt"
 	proto "github.com/chremoas/chremoas/proto"
+	pclient "github.com/chremoas/perms-srv/client"
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rclient "github.com/chremoas/role-srv/client"
 	rolesrv "github.com/chremoas/role-srv/proto"
-	"github.com/chremoas/services-common/args"
+	"github.com/chremoas/chremoas/args"
 	common "github.com/chremoas/services-common/command"
 	"golang.org/x/net/context"
 	"strings"
@@ -234,7 +235,7 @@ func NewCommand(name string, factory ClientFactory) *Command {
 	role = rclient.Roles{
 		RoleClient:  clientFactory.NewRoleClient(),
 		PermsClient: clientFactory.NewPermsClient(),
-		Permissions: common.NewPermission(clientFactory.NewPermsClient(), []string{"sig_admins"}),
+		Permissions: pclient.NewPermission(clientFactory.NewPermsClient(), []string{"sig_admins"}),
 	}
 
 	return &Command{name: name, factory: factory}
