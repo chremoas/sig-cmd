@@ -87,6 +87,8 @@ github.com/chremoas/role-srv v1.2.1/go.mod h1:a8u66InMGq0P+JpFEYN3CJ4Om3FZ0EqqPe
 github.com/chremoas/role-srv v1.2.2/go.mod h1:7K9THNlG5/IL2Sj0PtiERVi551VWx1um6oqIFDlAa+s=
 github.com/chremoas/role-srv v1.2.5 h1:9xuLmFO7SN/uCQ9WUhPsAtiLjtpu86UpOmiJx5g+Z6M=
 github.com/chremoas/role-srv v1.2.5/go.mod h1:bS7Tf8vQSYDh2YvlwKYD9QeGm4+OnhGxsTw5KxHVddY=
+github.com/chremoas/role-srv v1.2.6 h1:SDwmf6fmy/70sthdMJ+XCMeSkfyom4u/soAi0ZRrzsE=
+github.com/chremoas/role-srv v1.2.6/go.mod h1:S4XplQETKi5yFYbRJOBrJ7+pwIA9Xdu/KHaviKpstX8=
 github.com/chremoas/services-common v1.1.5/go.mod h1:MP2fE7WGpNfPWFh5prKth122j9YjWM3AyTKvtZBRT1k=
 github.com/chremoas/services-common v1.1.7 h1:sq1E7YapFyyvbm9YgQlGufgGlzaqCQYrXAJ6YfIE9g8=
 github.com/chremoas/services-common v1.1.7/go.mod h1:HFraluwmGRASG65Vs196a5W6oBbDQsIQ2mbFyf/uPhA=
