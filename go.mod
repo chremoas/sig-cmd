@@ -1,6 +1,6 @@
 module github.com/chremoas/sig-cmd
 
-go 1.12
+go 1.14
 
 require (
 	github.com/chremoas/chremoas v1.2.5
@@ -11,4 +11,5 @@ require (
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 )
 
+replace github.com/chremoas/sig-cmd => ../sig-cmd
 replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
