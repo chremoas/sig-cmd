@@ -11,7 +11,7 @@ ADD . /app/
 WORKDIR /app
 #RUN CGO_ENABLED=0 go build ${LDFLAGS} .
 RUN CGO_ENABLED=0 go build -ldflags "-w -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.Branch=${BRANCH}" .
-RUN chmod 755 %{BINARYU}
+RUN chmod 755 ${BINARY}
 
 
 FROM scratch
