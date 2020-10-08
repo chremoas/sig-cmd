@@ -16,6 +16,6 @@ RUN CGO_ENABLED=0 go build -ldflags "-w -X main.Version=${VERSION} -X main.Commi
 FROM scratch
 MAINTAINER Brian Hechinger <wonko@4amlunch.net>
 VOLUME /etc/chremoas
-COPY --from=build /app/${BINARY} /${BINARY}
+COPY --from=build /app/${BINARY} /service
 
-ENTRYPOINT ["/${BINARY}", "--configuration_file", "/etc/chremoas/chremoas.yaml"]
+ENTRYPOINT ["/service", "--configuration_file", "/etc/chremoas/chremoas.yaml"]
