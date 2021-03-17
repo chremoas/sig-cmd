@@ -2,15 +2,16 @@ package command
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/chremoas/chremoas/args"
 	proto "github.com/chremoas/chremoas/proto"
 	pclient "github.com/chremoas/perms-srv/client"
 	permsrv "github.com/chremoas/perms-srv/proto"
 	rclient "github.com/chremoas/role-srv/client"
 	rolesrv "github.com/chremoas/role-srv/proto"
-	"github.com/chremoas/chremoas/args"
 	common "github.com/chremoas/services-common/command"
 	"golang.org/x/net/context"
-	"strings"
 )
 
 type ClientFactory interface {
@@ -89,7 +90,7 @@ func createSigs(ctx context.Context, req *proto.ExecRequest) string {
 		filter,                          // filterB
 		joinable,                        // Is this SIG joinable?
 		strings.Join(req.Args[5:], " "), // roleName
-		true, // Is this a SIG?
+		true,                            // Is this a SIG?
 	)
 }
 
@@ -230,7 +231,7 @@ func listUserSigs(ctx context.Context, request *proto.ExecRequest) string {
 	return role.ListUserRoles(ctx, s[1], true)
 }
 
-func NewCommand(name string, factory ClientFactory) *Command {
+func New(name string, factory ClientFactory) *Command {
 	clientFactory = factory
 	role = rclient.Roles{
 		RoleClient:  clientFactory.NewRoleClient(),

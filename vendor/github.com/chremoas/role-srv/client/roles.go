@@ -11,6 +11,7 @@ import (
 	"github.com/chremoas/services-common/sets"
 	"go.uber.org/zap"
 	"strconv"
+	"github.com/patrickmn/go-cache"
 )
 
 type Roles struct {
@@ -18,6 +19,8 @@ type Roles struct {
 	PermsClient permsrv.PermissionsService
 	Permissions *permclient.Permissions
 	Logger      *zap.Logger
+	Cache *cache.Cache
+
 }
 
 var clientType = map[bool]string{true: "SIG", false: "Role"}

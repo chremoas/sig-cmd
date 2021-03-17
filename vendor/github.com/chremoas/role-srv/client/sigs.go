@@ -65,6 +65,9 @@ func (r Roles) sigAction(ctx context.Context, sender, sig string, join, joinable
 	}
 
 	_, outputName, err := r.MapName(ctx, []string{s[1]})
+	if err != nil {
+		return common.SendError(err.Error())
+	}
 
 	if join {
 		return common.SendSuccess(fmt.Sprintf("Added %s to %s", outputName[0], sig))
